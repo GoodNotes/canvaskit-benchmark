@@ -2,14 +2,18 @@
   "name": "canvaskit-prototype",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "canvaskit-wasm": "^0.34.0"
+  },
+  "devDependencies": {
+    "webpack-cli": "^4.9.2",
+    "webpack": "^5.72.1"
   }
 }
