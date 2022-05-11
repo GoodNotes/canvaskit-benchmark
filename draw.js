@@ -1,66 +1,107 @@
-function drawDefault(canvas) {
-  let ctx = canvas.getContext('2d');
-  let rgradient = ctx.createRadialGradient(200, 300, 10, 100, 100, 300);
+function drawCanvasKit(surface) {
+  let canvas = surface.getCanvas(); 
 
-  // Add three color stops
-  rgradient.addColorStop(0, 'red');
-  rgradient.addColorStop(0.7, 'white');
-  rgradient.addColorStop(1, 'blue');
-
-  ctx.fillStyle = rgradient;
-  ctx.globalAlpha = 0.7;
-  ctx.fillRect(0, 0, SIZE, SIZE);
-
-  return canvas.toDataURL();
+  for (let stroke of currentStrokes) {
+    let path = new CanvasKit.Path();
+    let paint = new CanvasKit.Paint();
+    paint.setColor(CanvasKit.parseColorString(stroke.color));
+    if (currentStrokeType == StrokeType.Variable) {
+      paint.setStyle(CanvasKit.PaintStyle.Fill);
+      applyVariableStrokeTo(path, stroke);
+      canvas.drawPath(path, paint);
+    } else {
+      paint.setAntiAlias(true);
+      paint.setStyle(CanvasKit.PaintStyle.Stroke);
+      paint.setStrokeCap(CanvasKit.StrokeCap.Round);
+      paint.setStrokeJoin(CanvasKit.StrokeJoin.Round);
+      paint.setStrokeWidth(stroke.thickness);
+      applyConstantWidthStrokeTo(path, stroke);
+      canvas.drawPath(path, paint);
+    }
+    path.delete();
+    paint.delete();
+  }
+  surface.flush();
 }
 
-function drawAnother(canvas) {
-  let ctx = canvas.getContext('2d');
-  ctx.scale(1.1, 1.1);
-  ctx.translate(10, 10);
-  // Shouldn't impact the fillRect calls
-  ctx.setLineDash([5, 3]);
-
-  ctx.fillStyle = 'rgba(200, 0, 100, 0.81)';
-  ctx.fillRect(20, 30, 100, 100);
-
-  ctx.globalAlpha = 0.81;
-  ctx.fillStyle = 'rgba(200, 0, 100, 1.0)';
-  ctx.fillRect(120, 30, 100, 100);
-  // This shouldn't do anything
-  ctx.globalAlpha = 0.1;
-
-  ctx.fillStyle = 'rgba(200, 0, 100, 0.9)';
-  ctx.globalAlpha = 0.9;
-  // Intentional no-op to check ordering
-  ctx.clearRect(220, 30, 100, 100);
-  ctx.fillRect(220, 30, 100, 100);
-
-  ctx.fillRect(320, 30, 100, 100);
-  ctx.clearRect(330, 40, 80, 80);
-
-  ctx.strokeStyle = 'blue';
-  ctx.ineWidth = 3;
-  ctx.setLineDash([5, 3]);
-  ctx.strokeRect(20, 150, 100, 100);
-  ctx.setLineDash([50, 30]);
-  ctx.strokeRect(125, 150, 100, 100);
-  ctx.lineDashOffset = 25;
-  ctx.strokeRect(230, 150, 100, 100);
-  ctx.setLineDash([2, 5, 9]);
-  ctx.strokeRect(335, 150, 100, 100);
-
-  ctx.setLineDash([5, 2]);
-  ctx.moveTo(336, 400);
-  ctx.quadraticCurveTo(366, 488, 120, 450);
-  ctx.lineTo(300, 400);
-  ctx.stroke();
-
-  ctx.font = '36pt Noto Mono';
-  ctx.strokeText('Dashed', 20, 350);
-  ctx.fillText('Not Dashed', 20, 400);
-  return canvas.toDataURL();
+function drawHtmlCanvas(canvas) {
+  let context = canvas.getContext('2d');
+  for (let stroke of currentStrokes) {
+    if (currentStrokeType == StrokeType.Variable) {
+      context.fillStyle = stroke.color;
+      applyVariableStrokeTo(context, stroke);
+      context.fill();
+    } else {
+      context.strokeStyle = stroke.color;
+      context.lineCap = 'round';
+      context.lineJoin = 'round';
+      context.lineWidth = stroke.thickness;
+      applyConstantWidthStrokeTo(context, stroke);
+      context.stroke();
+    }
+    context.beginPath();
+  }
 }
 
-window.drawDefault = drawDefault;
-window.drawAnother = drawAnother;
+function applyVariableStrokeTo(context, stroke) {
+  for (let command of stroke.commands) {
+    if (command.name == "PVariableWidthQuadCurveTo") {
+      for (let cmd of command.outline) {
+        switch (cmd.name) {
+          case 'PPoint': // moveTo
+            context.moveTo(cmd.x, cmd.y);
+            break;
+          case 'PQuadCurveTo':
+            if (context['quadraticCurveTo'] !== undefined) {
+              context.quadraticCurveTo(cmd.control.x, cmd.control.y, cmd.end.x, cmd.end.y);
+            } else {
+              context.quadTo(cmd.control.x, cmd.control.y, cmd.end.x, cmd.end.y);
+            }
+            break;
+          case 'PCubicCurveTo':
+            if (context['bezierCurveTo'] !== undefined) {
+              context.bezierCurveTo(cmd.control1.x, cmd.control1.y, cmd.control2.x, cmd.control2.y, cmd.end.x, cmd.end.y);
+            } else {
+              context.cubicTo(cmd.control1.x, cmd.control1.y, cmd.control2.x, cmd.control2.y, cmd.end.x, cmd.end.y);
+            }
+            break;
+          case 'PArc':
+            context.arc(cmd.center.x, cmd.center.y, cmd.radius, cmd.startAngle, cmd.endAngle, cmd.clockwise);
+            break;
+        }
+      }
+      if (context['closePath'] !== undefined) {
+        context.closePath();
+      } else {
+        context.close();
+      }
+    }
+  }
+}
+
+function applyConstantWidthStrokeTo(context, stroke) {
+  var previousPoint = null;
+  for (let command of stroke.commands) {
+      switch (command.type) {
+        case 'moveTo':
+          context.moveTo(command.point.x, command.point.y);
+          break;
+        case 'quadCurveTo':
+          var p2 = command.end;
+          if (previousPoint == null) {
+            previousPoint = p2;
+            break;
+          }
+          if (context['quadraticCurveTo'] !== undefined) {
+            context.quadraticCurveTo(command.control.x, command.control.y, command.end.x, command.end.y);
+          } else {
+            context.quadTo(command.control.x, command.control.y, command.end.x, command.end.y);
+          }
+          previousPoint = p2;
+          break;
+      }
+  }
+}
+
+window.drawCanvasKit = drawCanvasKit;
+window.drawHtmlCanvas = drawHtmlCanvas;

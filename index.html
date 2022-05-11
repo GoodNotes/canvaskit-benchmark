@@ -1,35 +1,77 @@
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no">
     <script type="text/javascript" src="/node_modules/canvaskit-wasm/bin/canvaskit.js"></script>
     <script type="text/javascript" src="/index.js"></script>
     <script type="text/javascript" src="/draw.js"></script>
+    <script type="text/javascript" src="/generateStroke.js"></script>
   </head>
+
   <body>
     <img id="spinner" src="/assets/spinner.gif"/>
+
     <div id="toolbar">
-      <label for="examples">Choose example: </label>
-      <select name="examples" id="examples">
-        <option value="default">Default</option>
-        <option value="another">Another</option>
-      </select>
-      <label for="engines">Choose rendering engine: </label>
-      <select name="engines" id="engines">
-        <option value="canvaskit">CanvasKit</option>
-        <option value="htmlcanvas">HtmlCanvas</option>
-      </select>
-      <button onclick="draw()">Draw</button>
+
+      <div id="row1">
+        <div>
+          <div>
+            <label for="strokeType">Choose stroke type: </label>
+          </div>
+          <div>
+            <select name="strokeType" id="strokeType">
+              <option value="variable">variable</option>
+              <option value="constant">constant</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <div>
+            <label for="numOfStrokes">Generate strokes: </label>
+          </div>
+          <div>
+            <input type="range" min="1" max="1000" value="50" class="slider" id="numOfStrokes" oninput="updateSliderValue(this.value)">
+          </div>
+          <div>
+            <span id="numOfStrokesValue">50</span>
+          </div>
+        </div>
+
+        <div>
+          <div>
+            <label for="engines">Choose rendering engine: </label>
+          </div>
+          <div>
+            <select name="engines" id="engines">
+              <option value="canvaskit-2d">CanvasKit2D</option>
+              <option value="canvaskit-gpu">CanvasKitGPU</option>
+              <option value="htmlcanvas">HtmlCanvas</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="row2">
+        <div><span id="currentStrokeSpan">strokeType: null, strokeNum: 0</span></div>
+        <div><button id="generateStrokeButton" onclick="generateStrokesFromInput()">Generate strokes</button></div>
+        <div><button id="drawButton" onclick="draw()">Draw</button></div>
+      </div>
+
     </div>
+
     <div id="content">
       <div id="canvaskit-container">
         <span id="canvaskit-result"></span>
-        <img id="canvaskit"></img>
+        <canvas id="canvaskit" width=600 height=600>
       </div>
       <div id="htmlcanvas-container">
         <span id="htmlcanvas-result"></span>
         <canvas id="htmlcanvas" width=600 height=600>
       </div>
     </div>
+
   </body>
+
 <style>
 #spinner {
   display: block;
@@ -37,6 +79,21 @@
   z-index: 999;
   width: 100vw;
   height: 100vh;
+}
+#toolbar > #row1, #toolbar > #row2 {
+  display: flex;
+  flex-flow: row;
+  padding: 10px;
+  align-items: center;
+}
+#toolbar {
+  display: flex;
+  flex-direction: column;
+}
+#toolbar>div>div, #toolbar>div>div>div {
+  display: flex;
+  padding: 10px;
+  align-items: center;
 }
 #content {
   width: 100%;
@@ -64,4 +121,5 @@ canvas {
   height: 600px;
 }
 </style>
+
 </html>
