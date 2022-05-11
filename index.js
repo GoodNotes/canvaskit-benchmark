@@ -1,6 +1,6 @@
 var CanvasKit;
 CanvasKitInit({
-  locateFile: (file) => '/node_modules/canvaskit-wasm/bin/'+file,
+  locateFile: (file) => 'node_modules/canvaskit-wasm/bin/'+file,
 }).then((CanvasKit) => {
   // Code goes here using CanvasKitInit
   this.CanvasKit = CanvasKit;
