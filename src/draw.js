@@ -1,16 +1,18 @@
-function drawCanvasKit(surface) {
+import { StrokeType } from './types';
+
+function drawCanvasKit(surface, strokes, type) {
   let canvas = surface.getCanvas(); 
 
-  for (let stroke of currentStrokes) {
+  for (let stroke of strokes) {
     let path = new CanvasKit.Path();
     let paint = new CanvasKit.Paint();
     paint.setColor(CanvasKit.parseColorString(stroke.color));
-    if (currentStrokeType == StrokeType.Variable) {
+    paint.setAntiAlias(true);
+    if (type == StrokeType.Variable) {
       paint.setStyle(CanvasKit.PaintStyle.Fill);
       applyVariableStrokeTo(path, stroke);
       canvas.drawPath(path, paint);
     } else {
-      paint.setAntiAlias(true);
       paint.setStyle(CanvasKit.PaintStyle.Stroke);
       paint.setStrokeCap(CanvasKit.StrokeCap.Round);
       paint.setStrokeJoin(CanvasKit.StrokeJoin.Round);
@@ -21,13 +23,15 @@ function drawCanvasKit(surface) {
     path.delete();
     paint.delete();
   }
+  var st = performance.now();
   surface.flush();
+  return st;
 }
 
-function drawHtmlCanvas(canvas) {
+function drawCanvas2dContext(canvas, strokes, type) {
   let context = canvas.getContext('2d');
-  for (let stroke of currentStrokes) {
-    if (currentStrokeType == StrokeType.Variable) {
+  for (let stroke of strokes) {
+    if (type == StrokeType.Variable) {
       context.fillStyle = stroke.color;
       applyVariableStrokeTo(context, stroke);
       context.fill();
@@ -103,5 +107,7 @@ function applyConstantWidthStrokeTo(context, stroke) {
   }
 }
 
-window.drawCanvasKit = drawCanvasKit;
-window.drawHtmlCanvas = drawHtmlCanvas;
+export {
+  drawCanvasKit,
+  drawCanvas2dContext
+}

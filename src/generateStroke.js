@@ -303,10 +303,10 @@ function fromFlattenVariableWidthStroke(flattenStroke) {
   return PVariableWidthStroke(commands);
 }
 
-function generateStrokes(n, type) {
+function generateStrokes(n, type, pageWidth, pageHeight) {
   var data = [];
   for (var i = 0; i < n; i++) {
-    const frame = generateRandomFrame(SIZE, SIZE);
+    const frame = generateRandomFrame(pageWidth, pageHeight);
     let stroke;
     if (type == "variable") {
       stroke = generateRandomPFlattenVariableWidthStrokeCommands(frame);
@@ -317,5 +317,5 @@ function generateStrokes(n, type) {
   }
   return data;
 }
-window.generateStrokes = generateStrokes;
 
+export default generateStrokes;

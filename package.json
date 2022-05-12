@@ -13,7 +13,8 @@
     "canvaskit-wasm": "^0.34.0"
   },
   "devDependencies": {
-    "webpack-cli": "^4.9.2",
-    "webpack": "^5.72.1"
+    "copy-webpack-plugin": "^10.2.4",
+    "webpack": "^5.72.1",
+    "webpack-cli": "^4.9.2"
   }
 }
