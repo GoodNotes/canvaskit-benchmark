@@ -8,11 +8,12 @@ function plot(logs, forHTML = false) {
   let datasets = [];
 
   for (let key of labelToData.keys()) {
+    var color = randColor();
     var dataset = {};
     dataset.label = key;
     dataset.data = labelToData.get(key);
-    dataset.borderColor = randColor();
-    dataset.backgroundColor = randColor();
+    dataset.borderColor = color;
+    dataset.backgroundColor = color;
     datasets.push(dataset);
   }
 
