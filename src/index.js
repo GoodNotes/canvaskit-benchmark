@@ -20,8 +20,7 @@ CanvasKitInit().then((CanvasKit) => {
   var copyLogButton = document.getElementById("copyLogButton");
   copyLogButton.onpointerup = copyLog;
 
-  // wait at least 0.5 second to remove it
-  setTimeout(() => document.getElementById("spinner").remove(), 500);
+  document.getElementById("spinner").remove();
 
 });
 
