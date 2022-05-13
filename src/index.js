@@ -50,7 +50,7 @@ function draw() {
   function benchmark(resolve) {
     startTime = performance.now();
     switch (engine) {
-      case Engine.CanvasKitGPU: 
+      case Engine.CanvasKitWebGL: 
         var surface = CanvasKit.MakeWebGLCanvasSurface(canvasKitCanvas);
         surface.requestAnimationFrame((canvas) => {
           drawCanvasKit(canvas, currentStrokes, currentStrokeType);
@@ -68,7 +68,7 @@ function draw() {
           resolve();
         });
         break;
-      case Engine.HtmlCanvas: 
+      case Engine.HTMLCanvas: 
         htmlcanvas.width = htmlcanvas.height = 0;
         htmlcanvas.width = htmlcanvas.height = SIZE;
 

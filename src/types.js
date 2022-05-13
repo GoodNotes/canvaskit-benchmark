@@ -4,9 +4,9 @@ var StrokeType = Object.freeze({
 });
 
 var Engine = Object.freeze({
-  CanvasKitGPU: "canvaskit-gpu",
+  CanvasKitWebGL: "canvaskit-webgl",
   CanvasKit2D: "canvaskit-2d",
-  HtmlCanvas: "htmlcanvas",
+  HTMLCanvas: "htmlcanvas",
 });
 
 var SIZE = 600;
