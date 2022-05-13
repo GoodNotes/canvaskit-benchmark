@@ -42,10 +42,7 @@ function draw() {
   var startTime;
   var endTime;
 
-  var htmlcanvasDrawStartTime;
-  var htmlcanvasDrawEndTime;
   var htmlcanvasFlushStartTime;
-  var htmlcanvasFlushEndTime;
   function benchmark(resolve) {
     startTime = performance.now();
     switch (engine) {
@@ -116,11 +113,11 @@ function log(startTime, endTime, engine, flushStartTime) {
       text = resultText(engine, totalTime);
       canvaskitResult.textContent = text;
       break;
-  case Engine.CanvasKitGPU:
+  case Engine.CanvasKitWebGL:
       text = resultText(engine, totalTime);
       canvaskitResult.textContent = text;
       break;
-  case Engine.HtmlCanvas:
+  case Engine.HTMLCanvas:
       text = resultText(engine, totalTime);
       text += `, drawTime: ${durationText(startTime, flushStartTime)}, flushTime: ${durationText(flushStartTime, endTime)}`
       htmlcanvasResult.textContent = text;
