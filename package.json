@@ -10,7 +10,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "canvaskit-wasm": "^0.34.0"
+    "canvaskit-wasm": "^0.34.0",
+    "chart.js": "^3.7.1"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^10.2.4",

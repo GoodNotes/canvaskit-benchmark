@@ -318,4 +318,7 @@ function generateStrokes(n, type, pageWidth, pageHeight) {
   return data;
 }
 
-export default generateStrokes;
+export { 
+  generateStrokes,
+  randColor
+};

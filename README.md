@@ -14,4 +14,5 @@ Steps:
 4. Choose your rendering engine, e.g. CanvasKit2D, CanvasKitWebGL or HTMLCanvas
 5. Click "Draw".
 6. Wait for the results that will be printed as logs.
-7. You can copy all the logs by clicking "Copy logs to clipboard" and proceed to analysis.
+7. You can plot the reults by clicking "Plot results"
+

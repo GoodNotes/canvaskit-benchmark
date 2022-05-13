@@ -294,6 +294,11 @@ canvaskit-wasm@^0.34.0:
   resolved "https://registry.yarnpkg.com/canvaskit-wasm/-/canvaskit-wasm-0.34.0.tgz#047d73a59168d32295834a817f1f871fe8cadeb2"
   integrity sha512-THKk3f4AQsN0tEygu/yI/vvIChm6gNg/V80174V1x54Uk1RHADRqG5a/Iq425l8NY3lk1bon0/gpeE7yQKqFQQ==
 
+chart.js@^3.7.1:
+  version "3.7.1"
+  resolved "https://registry.yarnpkg.com/chart.js/-/chart.js-3.7.1.tgz#0516f690c6a8680c6c707e31a4c1807a6f400ada"
+  integrity sha512-8knRegQLFnPQAheZV8MjxIXc5gQEfDFD897BJgv/klO/vtIyFFmgMXrNfgrXpbTr/XbTturxRgxIXx/Y+ASJBA==
+
 chrome-trace-event@^1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/chrome-trace-event/-/chrome-trace-event-1.0.3.tgz#1015eced4741e15d06664a957dbbf50d041e26ac"

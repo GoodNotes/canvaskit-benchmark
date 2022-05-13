@@ -1,24 +1,22 @@
 const CanvasKitInit = require('canvaskit-wasm/bin/canvaskit.js');
 import { drawCanvasKit, drawCanvas2dContext } from './draw';
 import { StrokeType, Engine, SIZE } from './types';
-import generateStrokes from './generateStroke';
+import { generateStrokes } from './generateStroke';
+import { plot, parse } from './plot';
 
-var clickstart = 0;
 CanvasKitInit().then((CanvasKit) => {
   // Code goes here using CanvasKitInit
   window.CanvasKit = CanvasKit;
 
   const drawButton = document.getElementById("drawButton");
   drawButton.addEventListener("pointerup", () => {
-    clickstart = performance.now();
     draw();
-    return;
   }, { passive: true });
 
   document.getElementById("generateStrokeButton").onpointerup = generateStrokesFromInput;
 
-  var copyLogButton = document.getElementById("copyLogButton");
-  copyLogButton.onpointerup = copyLog;
+  var plotButton = document.getElementById("plotButton");
+  plotButton.onpointerup = plotResults;
 
   document.getElementById("spinner").remove();
 
@@ -70,12 +68,18 @@ function draw() {
 
         // we cannot measure the flush time other than
         // waiting for it to become idle
-        window.requestIdleCallback(() => {
-          endTime = performance.now();
+        if (window['requestIdleCallback']) {
+          window.requestIdleCallback(() => {
+            endTime = performance.now();
+            resolve();
+          });
+          drawCanvas2dContext(htmlcanvas, currentStrokes, currentStrokeType);
+          htmlcanvasFlushStartTime = performance.now();
+        } else {
+          drawCanvas2dContext(htmlcanvas, currentStrokes, currentStrokeType);
+          endTime = performance.now()
           resolve();
-        });
-        drawCanvas2dContext(htmlcanvas, currentStrokes, currentStrokeType);
-        htmlcanvasFlushStartTime = performance.now();
+        }
 
         break;
     }
@@ -119,7 +123,9 @@ function log(startTime, endTime, engine, flushStartTime) {
       break;
   case Engine.HTMLCanvas:
       text = resultText(engine, totalTime);
-      text += `, drawTime: ${durationText(startTime, flushStartTime)}, flushTime: ${durationText(flushStartTime, endTime)}`
+      if (flushStartTime) {
+        text += `, drawTime: ${durationText(startTime, flushStartTime)}, flushTime: ${durationText(flushStartTime, endTime)}`
+      }
       htmlcanvasResult.textContent = text;
       break;
   }
@@ -128,21 +134,20 @@ function log(startTime, endTime, engine, flushStartTime) {
   logResult.scrollTop = logResult.scrollHeight;
 }
 
-function copyLog() {
-  const copyLogButton = document.getElementById("copyLogButton");
+function plotResults() {
+  const plotButton = document.getElementById("plotButton");
   const log = document.getElementById("log");
-  copyLogButton.innerHTML = "Copying...";
-  var text = "";
-  for (let span of log.children) {
-    let t = span.innerText;
-    text += t + "\n";
-  }
-  var type = "text/plain";
-  var blob = new Blob([text], { type });
-  var data = [new ClipboardItem({ [type]: blob })];
-  navigator.clipboard.write(data).then(() => {
-    copyLogButton.innerHTML = "Copy logs to clipboard";
-  });
+  plotButton.innerHTML = "Plotting...";
+
+  setTimeout(() => {
+    var text = "";
+    for (let span of log.children) {
+      let t = span.innerText;
+      text += t + "\n";
+    }
+    plot(text);
+    plotButton.innerHTML = "Plot results";
+  }, 0);
 }
 
 function generateStrokesFromInput() {
@@ -162,4 +167,3 @@ function generateStrokesFromInput() {
     generateButton.innerHTML = "Generate strokes";
   }, 0);
 }
-
