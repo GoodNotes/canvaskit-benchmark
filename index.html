@@ -10,7 +10,7 @@
     <div id="toolbar">
 
       <div id="row1">
-        <div style="display: flex; flex-direction: row">
+        <div style="display: flex; flex-direction: row; padding: 0">
           <div>
             <div>
               <label for="strokeType">Choose stroke type: </label>
@@ -46,19 +46,19 @@
           </div>
         </div>
 
-        <div style="margin-top: 20px">
-          <span id="currentStrokeSpan">strokeType: null, strokeNum: 0</span>
+        <div style="margin: 20px 0">
+          <div>
+            <span id="currentStrokeSpan">strokeType: null, strokeNum: 0</span>
+          </div>
         </div>
 
-      </div>
-
-      <div id="row3">
         <div>
           <div class="button" id="generateStrokeButton">Generate strokes</div>
           <div class="button" id="drawButton">Draw</div>
           <div class="button" id="copyLogButton">Copy logs to clipboard</div>
         </div>
       </div>
+
       <div id="log"></div>
 
     </div>
@@ -101,25 +101,23 @@ body>div {
   display: flex;
   flex-flow: row;
   padding: 10px;
-  align-items: center;
-  width: 100%;
-  height: 100%;
 }
 #toolbar {
   display: flex;
   flex-direction: column;
+  height: 30vh;
   width: 100%;
-  height: 10%;
-  flex: 0 0 25%;
+  justify-content: space-evenly;
 }
 #toolbar>div div {
   display: flex;
   padding: 0 10px;
   align-items: center;
 }
+
 #content {
   display: flex;
-  flex: 0 0 75%;
+  flex: 0 1 50%;
 }
 #canvaskit-container {
   width: 50%;
@@ -157,7 +155,6 @@ canvas {
 }
 
 #row3 {
-  height: 100%;
   display: flex;
   flex-direction: row !important;
   align-items: flex-start !important;
@@ -168,9 +165,10 @@ canvas {
   flex-flow: column !important;
   align-items: start !important;
   background: #dddddd;
-  width: 100%;
-  height: 100%;
+  width: 95%;
   overflow: scroll;
+  flex: 0 1 50%;
+  margin: 0 20px;
 }
 
 .button {
@@ -182,6 +180,7 @@ canvas {
   padding: 10px !important;
   margin: 0 10px;
   cursor: pointer;
+  user-select: none;
 }
 </style>
 
