@@ -173,8 +173,8 @@ function randColor() {
 function generateRandomFrame(pageWidth, pageHeight) {
     let originX = randFloat(pageWidth);
     let originY = randFloat(pageHeight);
-    let frameWidth = randFloat(pageWidth - originX);
-    let frameHeight = randFloat(pageHeight - originY);
+    let frameWidth = randFloat(pageWidth - originX) - randFloat(50);
+    let frameHeight = randFloat(pageHeight - originY) - randFloat(50);
 
     return {
         origin: {

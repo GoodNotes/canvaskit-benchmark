@@ -1,7 +1,7 @@
 import { StrokeType } from './types';
 
 function drawCanvasKit(surface, strokes, type) {
-  let canvas = surface.getCanvas(); 
+  let canvas = surface;
 
   for (let stroke of strokes) {
     let path = new CanvasKit.Path();
@@ -23,13 +23,10 @@ function drawCanvasKit(surface, strokes, type) {
     path.delete();
     paint.delete();
   }
-  var st = performance.now();
-  surface.flush();
-  return st;
 }
 
 function drawCanvas2dContext(canvas, strokes, type) {
-  let context = canvas.getContext('2d');
+  let context = canvas.getContext('2d', { alpha: false });
   for (let stroke of strokes) {
     if (type == StrokeType.Variable) {
       context.fillStyle = stroke.color;

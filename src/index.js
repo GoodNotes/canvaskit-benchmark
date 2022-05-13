@@ -3,16 +3,22 @@ import { drawCanvasKit, drawCanvas2dContext } from './draw';
 import { StrokeType, Engine, SIZE } from './types';
 import generateStrokes from './generateStroke';
 
+var clickstart = 0;
 CanvasKitInit().then((CanvasKit) => {
   // Code goes here using CanvasKitInit
   window.CanvasKit = CanvasKit;
-  var slider = document.getElementById("numOfStrokes");
-  slider.oninput = () => updateSliderValue(slider.value);
-  document.getElementById("drawButton").onclick = draw;
-  document.getElementById("generateStrokeButton").onclick = generateStrokesFromInput;
+
+  const drawButton = document.getElementById("drawButton");
+  drawButton.addEventListener("pointerup", () => {
+    clickstart = performance.now();
+    draw();
+    return;
+  }, { passive: true });
+
+  document.getElementById("generateStrokeButton").onpointerup = generateStrokesFromInput;
 
   var copyLogButton = document.getElementById("copyLogButton");
-  copyLogButton.onclick = copyLog;
+  copyLogButton.onpointerup = copyLog;
 
   // wait at least 0.5 second to remove it
   setTimeout(() => document.getElementById("spinner").remove(), 500);
@@ -30,46 +36,65 @@ function draw() {
 
   const htmlcanvas = document.getElementById("htmlcanvas");
   const canvasKitCanvas = document.getElementById("canvaskitCanvas");
-  const canvasKitImg = document.getElementById("canvaskitImg");
   var engine = engines.options[engines.selectedIndex].value;
 
   drawButton.innerHTML = "Drawing...";
-  function benchmark() {
-    var startTime = performance.now();
-    var flushStartTime = 0;
+
+  var startTime;
+  var endTime;
+
+  var htmlcanvasDrawStartTime;
+  var htmlcanvasDrawEndTime;
+  var htmlcanvasFlushStartTime;
+  var htmlcanvasFlushEndTime;
+  function benchmark(resolve) {
+    startTime = performance.now();
     switch (engine) {
       case Engine.CanvasKitGPU: 
-        canvasKitCanvas.style.display = 'block';
-        canvasKitImg.style.display = 'none';
         var surface = CanvasKit.MakeWebGLCanvasSurface(canvasKitCanvas);
-        flushStartTime = drawCanvasKit(surface, currentStrokes, currentStrokeType);
+        surface.requestAnimationFrame((canvas) => {
+          drawCanvasKit(canvas, currentStrokes, currentStrokeType);
+          endTime = performance.now();
+
+          resolve();
+        });
         break;
       case Engine.CanvasKit2D: 
-        canvasKitCanvas.style.display = 'none';
-        canvasKitImg.style.display = 'block';
-        var canvas = CanvasKit.MakeCanvas(SIZE, SIZE);
-        drawCanvas2dContext(canvas, currentStrokes, currentStrokeType);
-        flushStartTime = performance.now();
-        var src = canvas.toDataURL();
-        canvasKitImg.src = src;
+        var surface = CanvasKit.MakeCanvasSurface(canvasKitCanvas);
+        surface.requestAnimationFrame((canvas) => {
+          drawCanvasKit(canvas, currentStrokes, currentStrokeType);
+          endTime = performance.now();
+
+          resolve();
+        });
         break;
       case Engine.HtmlCanvas: 
         htmlcanvas.width = htmlcanvas.height = 0;
         htmlcanvas.width = htmlcanvas.height = SIZE;
+
+        // we cannot measure the flush time other than
+        // waiting for it to become idle
+        window.requestIdleCallback(() => {
+          endTime = performance.now();
+          resolve();
+        });
         drawCanvas2dContext(htmlcanvas, currentStrokes, currentStrokeType);
+        htmlcanvasFlushStartTime = performance.now();
+
         break;
     }
-    var endTime = performance.now();
-
-    log(startTime, endTime, flushStartTime, engine);
-    drawButton.innerHTML = "Draw";
   }
-
   // fake async
-  setTimeout(benchmark, 0);
+  setTimeout(() => {
+    new Promise(benchmark).then(() => {
+      log(startTime, endTime, engine, htmlcanvasFlushStartTime);
+      drawButton.innerHTML = "Draw";
+      return;
+    });
+  }, 0);
 }
 
-function log(startTime, endTime, flushStartTime, engine) {
+function log(startTime, endTime, engine, flushStartTime) {
   const canvaskitResult = document.getElementById("canvaskit-result");
   const htmlcanvasResult = document.getElementById("htmlcanvas-result");
   const logResult = document.getElementById("log");
@@ -81,37 +106,30 @@ function log(startTime, endTime, flushStartTime, engine) {
     
     return `${int + +decimal.toPrecision(3)}ms`;
   };
-  var resultWithoutFlushText = (engine, totalTime) => `[${engine}][${currentStrokes.length} ${currentStrokeType} strokes] Total time: ${totalTime}`;
-  var resultWithFlushText = (engine, totalTime, drawTime, flushTime) => `${resultWithoutFlushText(engine, totalTime)}, draw time: ${drawTime}, flush time: ${flushTime}`;
+  var resultText = (engine, totalTime) => `[${engine}][${currentStrokes.length} ${currentStrokeType} strokes] Total time: ${totalTime}`;
 
   const span = document.createElement("span");
 
   var totalTime = durationText(startTime, endTime);
-  var drawTime = durationText(startTime, flushStartTime);
-  var flushTime = durationText(flushStartTime, endTime);
   var text;
   switch (engine) {
   case Engine.CanvasKit2D:
-      text = resultWithFlushText(engine, totalTime, drawTime, flushTime);
+      text = resultText(engine, totalTime);
       canvaskitResult.textContent = text;
       break;
   case Engine.CanvasKitGPU:
-      text = resultWithFlushText(engine, totalTime, drawTime, flushTime);
+      text = resultText(engine, totalTime);
       canvaskitResult.textContent = text;
       break;
   case Engine.HtmlCanvas:
-      text = resultWithoutFlushText(engine, totalTime);
+      text = resultText(engine, totalTime);
+      text += `, drawTime: ${durationText(startTime, flushStartTime)}, flushTime: ${durationText(flushStartTime, endTime)}`
       htmlcanvasResult.textContent = text;
       break;
   }
   span.innerHTML = text;
   logResult.appendChild(span);
   logResult.scrollTop = logResult.scrollHeight;
-}
-
-function updateSliderValue(value) {
-  let span = document.getElementById("numOfStrokesValue");
-  span.innerText = value;
 }
 
 function copyLog() {
@@ -132,12 +150,20 @@ function copyLog() {
 }
 
 function generateStrokesFromInput() {
-  let currentStrokeSpan = document.getElementById("currentStrokeSpan");
-  let n = document.getElementById("numOfStrokes").value;
-  let strokeTypes = document.getElementById("strokeType");
-  let type = strokeTypes.options[strokeTypes.selectedIndex].value;
-  currentStrokes = generateStrokes(n, type, SIZE, SIZE);
-  currentStrokeType = type;
-  currentStrokeSpan.innerText = `strokeType: ${type}, strokeNum: ${n}`;
+  let generateButton = document.getElementById("generateStrokeButton");
+  generateButton.innerHTML = "Generating...";
+
+  window.setTimeout(() => {
+    let currentStrokeSpan = document.getElementById("currentStrokeSpan");
+    const input = document.getElementById("numOfStrokes");
+    let n = Math.max(input.value || 0, 50);
+    input.value = n;
+    let strokeTypes = document.getElementById("strokeType");
+    let type = strokeTypes.options[strokeTypes.selectedIndex].value;
+    currentStrokes = generateStrokes(n, type, SIZE, SIZE);
+    currentStrokeType = type;
+    currentStrokeSpan.innerText = `strokeType: ${type}, strokeNum: ${n}`;
+    generateButton.innerHTML = "Generate strokes";
+  }, 0);
 }
 
