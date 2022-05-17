@@ -51,10 +51,10 @@ function parse(logs, forHTML) {
   let strokeLabels = new Set();
 
   for (let log of logs.split("\n").slice(0, -1)) {
-    var regex = /\[(htmlcanvas|canvaskit-webgl|canvaskit-2d)]\[(\d+) (.+ )strokes]( .+)/g;
+    var regex = /\[(htmlcanvas.*?|canvaskit-webgl|canvaskit-2d)]\[(\d+) (.+ )strokes]( .+)/g;
     var regexResults = regex.exec(log);
     var engine = regexResults[1].trim();
-    if (engine !== "htmlcanvas" && forHTML) throw Error("");
+    if (!engine.startsWith("htmlcanvas") && forHTML) throw Error("");
     var strokeNum = +regexResults[2].trim();
     var strokeType = regexResults[3].trim();
     var result = regexResults[4].trim();
@@ -68,11 +68,11 @@ function parse(logs, forHTML) {
     if (forHTML) {
       // Total time: xx.yyms, drawTime: aa.bbms, flushTime: cc.ddms
       let total = getMs(split[0]);
-      let totalLabel = "total";
+      let totalLabel = `${engine}|total`;
       let draw = getMs(split[1]);
-      let drawLabel = "draw";
+      let drawLabel = `${engine}|draw`;
       let flush = getMs(split[2]);
-      let flushLabel = "flush";
+      let flushLabel = `${engine}|flush`;
 
       let process = (label, time) => {
         if (labelToDataFirstPass.has(label)) {

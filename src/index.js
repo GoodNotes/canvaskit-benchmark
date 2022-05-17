@@ -68,18 +68,13 @@ function draw() {
 
         // we cannot measure the flush time other than
         // waiting for it to become idle
-        if (window['requestIdleCallback']) {
-          window.requestIdleCallback(() => {
-            endTime = performance.now();
-            resolve();
-          });
-          drawCanvas2dContext(htmlcanvas, currentStrokes, currentStrokeType);
-          htmlcanvasFlushStartTime = performance.now();
-        } else {
-          drawCanvas2dContext(htmlcanvas, currentStrokes, currentStrokeType);
-          endTime = performance.now()
+        drawCanvas2dContext(htmlcanvas, currentStrokes, currentStrokeType);
+        htmlcanvasFlushStartTime = performance.now();
+        // force browser rendering here
+        window.setTimeout(() => {
+          endTime = performance.now();
           resolve();
-        }
+        }, 0);
 
         break;
     }
